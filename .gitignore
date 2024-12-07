@@ -1,0 +1,40 @@
+# Binaries
+/bin/
+/cmd/**/main
+
+# Build directories
+/build/
+/dist/
+/out/
+
+# Dependency directories
+/vendor/
+Godeps/
+
+# IDE and Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Coverage files
+coverage.out
+
+# Temporary files
+tmp/
+*.tmp
+*.temp
+
+# Migrations
+migrations/*.sql
+
+# OS generated files
+Thumbs.db
