@@ -5,7 +5,7 @@ A scalable product management system built in Go, featuring image processing cap
 ## Architecture
 
 ![Architecture Diagram]
-(https://raw.githubusercontent.com/iSparshP/product-management-system/blob/main/architecture.svg?sanitize=true)
+(https://raw.githubusercontent.com/iSparshP/product-management-system/refs/heads/main/architecture.svg?sanitize=true)
 
 ### Overview
 
