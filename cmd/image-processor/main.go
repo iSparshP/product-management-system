@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/iSparshP/product-management-system/internal/imageprocessor/service"
@@ -19,6 +20,15 @@ import (
 )
 
 func main() {
+	// Set Gin to release mode
+	gin.SetMode(gin.ReleaseMode)
+
+	// Debug: Print raw environment variables
+	log.Printf("Raw AWS_ACCESS_KEY_ID: %v", os.Getenv("AWS_ACCESS_KEY_ID"))
+	log.Printf("Raw AWS_SECRET_ACCESS_KEY length: %d", len(os.Getenv("AWS_SECRET_ACCESS_KEY")))
+	log.Printf("Raw AWS_REGION: %v", os.Getenv("AWS_REGION"))
+	log.Printf("Raw AWS_S3_BUCKET: %v", os.Getenv("AWS_S3_BUCKET"))
+
 	// Load configuration
 	cfg := config.LoadConfig()
 
@@ -28,6 +38,14 @@ func main() {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
 	defer logInstance.Sync()
+
+	logInstance.Info("AWS Configuration",
+		zap.String("AWS_REGION", cfg.AWSRegion),
+		zap.String("AWS_S3_BUCKET", cfg.AWSS3Bucket),
+		zap.String("AWS_ENDPOINT", cfg.AWSEndpoint),
+		zap.Bool("AWS_ACCESS_KEY_SET", cfg.AWSAccessKey != ""),
+		zap.Bool("AWS_SECRET_KEY_SET", cfg.AWSSecretKey != ""),
+	)
 
 	// Initialize PostgreSQL
 	pgConfig := &postgres.Config{

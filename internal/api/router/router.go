@@ -13,6 +13,7 @@ import (
 // SetupRouter initializes the Gin router with necessary middleware and routes.
 func SetupRouter(productHandler *handler.ProductHandler, logger *zap.Logger) *gin.Engine {
 	r := gin.New()
+	r.SetTrustedProxies([]string{"127.0.0.1"})
 	r.Use(gin.Recovery())
 	r.Use(middleware.LoggingMiddleware(logger))
 

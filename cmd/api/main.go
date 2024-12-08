@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/iSparshP/product-management-system/internal/api/handler"
@@ -22,6 +23,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	// Load configuration
 	cfg := config.LoadConfig()
 

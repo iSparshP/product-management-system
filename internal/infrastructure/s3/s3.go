@@ -8,33 +8,57 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.uber.org/zap"
 )
 
 type Client struct {
-	Uploader *s3manager.Uploader
-	Bucket   string
+	s3Client *s3.Client
+	bucket   string
 	logger   *zap.Logger
 }
 
-func NewS3Client(accessKey, secretKey, region, bucket string, logger *zap.Logger) *Client {
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
-		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-	})
+func NewS3Client(accessKey, secretKey, region, bucket, endpoint string, logger *zap.Logger) *Client {
+	logger.Info("Initializing S3 client",
+		zap.String("region", region),
+		zap.String("bucket", bucket),
+		zap.String("endpoint", endpoint),
+		zap.Bool("hasAccessKey", accessKey != ""),
+		zap.Bool("hasSecretKey", secretKey != ""))
+
+	cfg, err := config.LoadDefaultConfig(context.Background(),
+		config.WithRegion(region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			accessKey,
+			secretKey,
+			"",
+		)),
+	)
 	if err != nil {
-		logger.Fatal("Failed to create AWS session", zap.Error(err))
+		logger.Fatal("Failed to create AWS config", zap.Error(err))
 	}
 
-	uploader := s3manager.NewUploader(sess)
+	// Create S3 client with custom endpoint if provided
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		if endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
+
+	// Test the credentials
+	_, err = s3Client.ListBuckets(context.Background(), &s3.ListBucketsInput{})
+	if err != nil {
+		logger.Error("Failed to list buckets", zap.Error(err))
+	} else {
+		logger.Info("Successfully authenticated with AWS")
+	}
 
 	return &Client{
-		Uploader: uploader,
-		Bucket:   bucket,
+		s3Client: s3Client,
+		bucket:   bucket,
 		logger:   logger,
 	}
 }
@@ -52,8 +76,9 @@ func (c *Client) UploadFile(ctx context.Context, filePath, fileName string) (str
 	// Generate a unique key for the file
 	key := fmt.Sprintf("products/%s", filepath.Base(fileName))
 
-	result, err := c.Uploader.UploadWithContext(ctx, &s3manager.UploadInput{
-		Bucket:      aws.String(c.Bucket),
+	// Upload the file
+	_, err = c.s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(c.bucket),
 		Key:         aws.String(key),
 		Body:        f,
 		ContentType: aws.String(getContentType(fileName)),
@@ -61,17 +86,20 @@ func (c *Client) UploadFile(ctx context.Context, filePath, fileName string) (str
 	if err != nil {
 		c.logger.Error("Failed to upload file to S3",
 			zap.Error(err),
-			zap.String("bucket", c.Bucket),
+			zap.String("bucket", c.bucket),
 			zap.String("key", key))
 		return "", fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	c.logger.Info("Successfully uploaded file to S3",
-		zap.String("bucket", c.Bucket),
-		zap.String("key", key),
-		zap.String("location", result.Location))
+	// Generate the S3 URL
+	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", c.bucket, "ap-south-1", key)
 
-	return result.Location, nil
+	c.logger.Info("Successfully uploaded file to S3",
+		zap.String("bucket", c.bucket),
+		zap.String("key", key),
+		zap.String("url", url))
+
+	return url, nil
 }
 
 // getContentType determines the content type based on file extension

@@ -49,7 +49,7 @@ type ImageProcessor struct {
 
 func NewImageProcessor(consumer *kafka.Consumer, repo repository.ProductRepository, cfg *config.Config, logger *zap.Logger) *ImageProcessor {
 	// Initialize S3 Client
-	s3Client := s3.NewS3Client(cfg.AWSAccessKey, cfg.AWSSecretKey, cfg.AWSRegion, cfg.AWSS3Bucket, logger)
+	s3Client := s3.NewS3Client(cfg.AWSAccessKey, cfg.AWSSecretKey, cfg.AWSRegion, cfg.AWSS3Bucket, cfg.AWSEndpoint, logger)
 	dlqPublisher, _ := kafka.NewPublisher(cfg.KafkaBrokers, "image_processing_dlq", logger)
 
 	return &ImageProcessor{
