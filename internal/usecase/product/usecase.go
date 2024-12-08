@@ -91,25 +91,31 @@ func (u *usecase) CreateProduct(ctx context.Context, input model.CreateProductIn
 		}
 	}
 
+	// After successful creation, invalidate any existing cache
+	u.invalidateProductCache(ctx, product.ID.String())
+
 	return product, nil
 }
 
 func (u *usecase) GetProductByID(ctx context.Context, id string) (*model.Product, error) {
-	// Check Redis Cache
+	// Check Redis Cache first
 	cacheKey := fmt.Sprintf("product:%s", id)
 	cachedProduct, err := u.redisClient.Get(ctx, cacheKey)
 	if err == nil {
 		var product model.Product
 		if err := json.Unmarshal([]byte(cachedProduct), &product); err == nil {
-			u.logger.Debug("Cache hit for product", zap.String("id", id))
+			u.logger.Debug("Cache hit for product",
+				zap.String("id", id),
+				zap.String("cache_key", cacheKey))
 			return &product, nil
 		}
 		u.logger.Warn("Failed to unmarshal cached product",
 			zap.Error(err),
-			zap.String("id", id))
+			zap.String("id", id),
+			zap.String("cache_key", cacheKey))
 	}
 
-	// Fetch from Database
+	// Cache miss - fetch from database
 	product, err := u.repo.GetByID(ctx, id)
 	if err != nil {
 		u.logger.Error("Failed to get product by ID",
@@ -118,13 +124,17 @@ func (u *usecase) GetProductByID(ctx context.Context, id string) (*model.Product
 		return nil, fmt.Errorf("failed to get product: %w", err)
 	}
 
-	// Cache the Product
-	productData, err := json.Marshal(product)
-	if err == nil {
-		if err := u.redisClient.Set(ctx, cacheKey, productData, 10*time.Minute); err != nil {
+	// Cache the product with expiration
+	if productData, err := json.Marshal(product); err == nil {
+		if err := u.redisClient.Set(ctx, cacheKey, productData, 30*time.Minute); err != nil {
 			u.logger.Warn("Failed to cache product",
 				zap.Error(err),
-				zap.String("id", id))
+				zap.String("id", id),
+				zap.String("cache_key", cacheKey))
+		} else {
+			u.logger.Debug("Successfully cached product",
+				zap.String("id", id),
+				zap.String("cache_key", cacheKey))
 		}
 	}
 
@@ -142,4 +152,19 @@ func (u *usecase) GetProducts(ctx context.Context, userID string, filters map[st
 	}
 
 	return products, nil
+}
+
+// Add this new method for cache invalidation
+func (u *usecase) invalidateProductCache(ctx context.Context, productID string) {
+	cacheKey := fmt.Sprintf("product:%s", productID)
+	if err := u.redisClient.Del(ctx, cacheKey).Err(); err != nil {
+		u.logger.Warn("Failed to invalidate product cache",
+			zap.Error(err),
+			zap.String("product_id", productID),
+			zap.String("cache_key", cacheKey))
+	} else {
+		u.logger.Debug("Successfully invalidated product cache",
+			zap.String("product_id", productID),
+			zap.String("cache_key", cacheKey))
+	}
 }

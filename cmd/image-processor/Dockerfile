@@ -28,12 +28,15 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
 # Set working directory
-WORKDIR /root/
+WORKDIR /app
 
 # Copy the binary from builder
 COPY --from=builder /app/image-processor .
 
-# Expose any necessary ports (if applicable)
+# Create configs directory and copy .env file if it exists
+COPY configs/ configs/
+
+# Expose port
 EXPOSE 9090
 
 # Command to run the executable

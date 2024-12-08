@@ -20,6 +20,10 @@ Godeps/
 
 # Environment variables
 .env
+configs/.env
+
+# Keep the example file
+!configs/.env.example
 
 # Logs
 logs/

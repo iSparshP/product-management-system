@@ -29,9 +29,25 @@ type Config struct {
 
 // LoadConfig loads configuration from environment variables.
 func LoadConfig() *Config {
-	err := godotenv.Load("configs/.env")
-	if err != nil && !os.IsNotExist(err) {
-		log.Printf("Warning: Error loading .env file: %v", err)
+	// Try multiple possible locations for .env file
+	envFiles := []string{
+		"configs/.env",
+		"../configs/.env",
+		"./configs/.env",
+		"/app/configs/.env",
+	}
+
+	var loaded bool
+	for _, file := range envFiles {
+		if err := godotenv.Load(file); err == nil {
+			loaded = true
+			log.Printf("Loaded config from %s", file)
+			break
+		}
+	}
+
+	if !loaded {
+		log.Printf("No .env file found, using environment variables")
 	}
 
 	postgresPort, err := strconv.Atoi(os.Getenv("POSTGRES_PORT"))
