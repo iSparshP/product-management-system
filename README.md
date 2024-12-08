@@ -4,6 +4,113 @@ A scalable product management system built in Go, featuring image processing cap
 
 ## Architecture
 
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="100%" height="100%" fill="#f8f9fa"/>
+    
+    <!-- Title -->
+    <text x="400" y="40" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">
+        Product Management System Architecture
+    </text>
+
+    <!-- API Service Container -->
+    <rect x="50" y="80" width="200" height="160" rx="10" fill="#6cb2eb" opacity="0.8"/>
+    <text x="150" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="#ffffff" font-weight="bold">
+        API Service
+    </text>
+    <text x="150" y="140" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Gin Framework
+    </text>
+    <text x="150" y="160" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - REST Endpoints
+    </text>
+    <text x="150" y="180" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Middleware
+    </text>
+    <text x="150" y="200" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Authentication
+    </text>
+
+    <!-- Image Processor Service -->
+    <rect x="550" y="80" width="200" height="160" rx="10" fill="#38c172" opacity="0.8"/>
+    <text x="650" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="#ffffff" font-weight="bold">
+        Image Processor
+    </text>
+    <text x="650" y="140" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Async Processing
+    </text>
+    <text x="650" y="160" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Image Compression
+    </text>
+    <text x="650" y="180" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - S3 Upload
+    </text>
+    <text x="650" y="200" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Retry Mechanism
+    </text>
+
+    <!-- Database Layer -->
+    <rect x="50" y="400" width="200" height="120" rx="10" fill="#e3342f" opacity="0.8"/>
+    <text x="150" y="430" font-family="Arial" font-size="16" text-anchor="middle" fill="#ffffff" font-weight="bold">
+        PostgreSQL
+    </text>
+    <text x="150" y="460" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Product Data
+    </text>
+    <text x="150" y="480" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - User Data
+    </text>
+
+    <!-- Cache Layer -->
+    <rect x="300" y="400" width="200" height="120" rx="10" fill="#ffed4a" opacity="0.8"/>
+    <text x="400" y="430" font-family="Arial" font-size="16" text-anchor="middle" fill="#000000" font-weight="bold">
+        Redis Cache
+    </text>
+    <text x="400" y="460" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">
+        - Product Cache
+    </text>
+    <text x="400" y="480" font-family="Arial" font-size="12" text-anchor="middle" fill="#000000">
+        - Session Data
+    </text>
+
+    <!-- Message Queue -->
+    <rect x="550" y="400" width="200" height="120" rx="10" fill="#9561e2" opacity="0.8"/>
+    <text x="650" y="430" font-family="Arial" font-size="16" text-anchor="middle" fill="#ffffff" font-weight="bold">
+        Kafka
+    </text>
+    <text x="650" y="460" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Image Processing Queue
+    </text>
+    <text x="650" y="480" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - DLQ
+    </text>
+
+    <!-- Connections -->
+    <!-- API to PostgreSQL -->
+    <line x1="150" y1="240" x2="150" y2="400" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+    <!-- API to Redis -->
+    <line x1="250" y1="160" x2="400" y2="400" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+    <!-- API to Kafka -->
+    <line x1="250" y1="160" x2="650" y2="400" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+    <!-- Image Processor to Kafka -->
+    <line x1="650" y1="240" x2="650" y2="400" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+    <!-- Image Processor to PostgreSQL -->
+    <line x1="550" y1="160" x2="150" y2="400" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+
+    <!-- AWS S3 Cloud -->
+    <rect x="300" y="80" width="200" height="100" rx="10" fill="#f66d9b" opacity="0.8"/>
+    <text x="400" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="#ffffff" font-weight="bold">
+        AWS S3
+    </text>
+    <text x="400" y="140" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">
+        - Image Storage
+    </text>
+    
+    <!-- Connection to S3 -->
+    <line x1="550" y1="130" x2="500" y2="130" stroke="#666666" stroke-width="2" stroke-dasharray="5,5"/>
+</svg>
+
 ### Overview
 
 The system follows a clean architecture pattern with the following main components:
